@@ -47,10 +47,12 @@
 <div id="results-view" class="view">
   <div class="section-heading results-heading"><div><div class="kicker">YOUR 10-YEAR CAREER EXPLORER</div><h2>十年职业发展时间轴</h2><p id="range-label"></p></div><div class="report-actions"><button class="button muted" id="print-btn">打印 / 保存 PDF</button><button class="button muted" id="json-btn">导出数据</button></div></div>
   <div id="report-notice" class="notice caution"></div>
-  <div class="stat-grid" id="summary-stats"></div>
+  <section id="user-overview" class="user-overview" aria-label="十年职业总体结论"></section>
+  <section class="career-index-panel" aria-labelledby="career-index-title"><div class="panel-heading"><div><p class="kicker">CAREER DEVELOPMENT INDEX</p><h3 id="career-index-title">十年职业发展综合指数</h3><p>模型实验性指数（0–100），用于比较不同年份的职业发展主题；不代表升职概率、真实收入涨幅或客观职业评分。</p></div></div><div id="career-index-chart" class="career-index-chart"></div><div id="career-index-legend" class="career-index-legend"></div><details class="index-method"><summary>指数怎么算？哪些信息尚不能判断？</summary><div id="career-index-method"></div></details></section>
+  <details class="tech-stats"><summary>查看原始天象统计（专业信息）</summary><div class="stat-grid" id="summary-stats"></div></details>
   <section id="narrative-summary" class="narrative-summary"></section>
   <section id="decade-insights" class="decade-insights"></section>
-  <div class="panel"><div class="panel-heading"><div><h3>年度信号分布</h3><p>每列下方分别列出外部变化信号与个人行动信号的相位段数；它们不是评分、成功率或升职概率</p></div><div class="legend"><span><i class="swatch pink"></i>GR 外部变化</span><span><i class="swatch blue"></i>C 个人行动</span></div></div><div id="timeline" class="timeline" role="group" aria-label="十年职业信号柱状图"></div></div>
+  <details class="panel raw-signal-panel"><summary>查看专业图表：十年相位活跃段数</summary><div class="panel-heading"><div><h3>原始天象信号分布（技术附录）</h3><p>每列下方分别列出外部变化信号与个人行动信号的相位段数；它们不是评分、成功率或升职概率</p></div><div class="legend"><span><i class="swatch pink"></i>GR 外部变化</span><span><i class="swatch blue"></i>C 个人行动</span></div></div><div id="timeline" class="timeline" role="group" aria-label="十年职业信号柱状图"></div></details>
   <div class="year-section"><div class="year-selector"><div><div class="kicker">YEARLY DETAIL</div><h3 id="year-title">年度详情</h3></div><select id="year-select" aria-label="选择分析年份"></select></div><div id="year-detail"></div></div>
   <div class="panel"><h3>如何理解结果？</h3><p class="glossary-intro">点开术语，也能了解每项结果的含义和局限。</p><div class="glossary" id="glossary"></div></div>
   <section id="print-all" class="print-all"></section>
