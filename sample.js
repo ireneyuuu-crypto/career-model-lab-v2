@@ -1,0 +1,6 @@
+const years={2027:'示例：本年度信号较少，可以关注常规积累与日常职业决策。',2028:'示例：外部变化相位增加，值得留意组织与职责调整的现实条件。',2029:'示例：模型信号出现变化，但不能据此确认职位或薪资提升。',2030:'示例：该年标记了较多模型信号，可查看相关相位及时间段。不能据此断言职业晋升。',2031:'示例：可以观察个人行动节奏，并结合现实机会判断。',2032:'示例：新的变化窗口值得持续记录，但并不保证具体职业事件。',2033:'示例：阶段性的调整信号适合用于检视职业目标。',2034:'示例：可以关注外部环境与个人目标是否形成匹配。',2035:'示例：模型信号数量变化，不代表职业成功概率随之变化。',2036:'示例：对长期目标作阶段性复盘，关注实际的岗位与资源支持。'};document.querySelectorAll(".chart-year").forEach(el=>el.addEventListener("click",()=>{document.querySelectorAll(".chart-year").forEach(x=>x.setAttribute("aria-pressed","false"));el.setAttribute("aria-pressed","true");document.getElementById("selected-year").textContent=el.dataset.year;document.getElementById("year-text").textContent=years[el.dataset.year]}));
+import {selectTarot} from './tarot.js';
+import {renderTarot} from './tarot-ui.js';
+const sampleReport={birthUTC:'demo-only',years:Array.from({length:10},(_,i)=>({year:2027+i,GR:[1,2,4,3,5,4,6,3,5,4][i],C:[1,2,1,3,2,2,4,1,3,2][i],p1:[0,1,2,1,2,1,3,1,2,1][i]}))};
+renderTarot(document.getElementById('sample-career-tarot'),null,{sample:true});
+document.getElementById('sample-tarot-btn').addEventListener('click',()=>{renderTarot(document.getElementById('sample-career-tarot'),selectTarot(sampleReport),{sample:true});document.getElementById('sample-tarot-controls').hidden=true;});
