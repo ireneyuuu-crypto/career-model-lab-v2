@@ -7,7 +7,7 @@ export const SIGN=['白羊','金牛','双子','巨蟹','狮子','处女','天秤
 export const RULERS=['mars','venus','mercury','moon','sun','mercury','venus','mars','jupiter','saturn','saturn','jupiter']; // traditional rulers, fixed for reproducibility
 export const ASPECTS=[['conjunction',0,'合相'],['square',90,'刑相'],['opposition',180,'冲相']];
 export const RULES={GR:{movers:['jupiter','saturn','uranus','neptune','pluto'],orb:3},C:{movers:['sun','moon','mercury','venus','mars'],orb:2}};
-export const DEMO=`【Western Export For AI】\n盘型：本命盘\n出生时间：1992-12-21 22:35:00\n时区：东8区 / UTC+08:00\n经纬度：31.2304, 121.4737\n黄道：回归黄道\n宫制：Placidus\nMC：天蝎座 17°15′\n第二宫宫头：水瓶座 9°20′\n（本数据仅用于演示，不代表真实个人星盘。MC 和宫头为虚构测试值。）`;
+export const DEMO=`【Western Export For AI】\n盘型：本命盘\n出生时间：2001-04-17 09:20:00\n时区：东9区 / UTC+09:00\n经纬度：35.6800, 139.6900\n黄道：回归黄道\n宫制：Placidus\nMC：天蝎座 17°15′\n第二宫宫头：水瓶座 9°20′\n（完全虚构的公开演示样本：出生资料、星盘位置与现实人物无关联，仅供体验产品流程。）`;
 const norm=x=>((x%360)+360)%360;
 export function delta(a,b){const d=Math.abs(norm(a)-norm(b));return Math.min(d,360-d)}
 export function aspectOrb(a,b,angle){return Math.abs(delta(a,b)-angle)}
@@ -91,7 +91,7 @@ async function loadBundle() {
       .then(async response => {
         if (!response.ok) throw new Error(`星历文件读取失败：${url.pathname} (HTTP ${response.status})。请确认 ephemeris.json 与 index.html 在同一目录。`);
         const result = await response.json();
-        if (!result || typeof result !== 'object' || !Array.isArray(result['1992'])) throw new Error('星历文件格式错误，请上传 V1.2 包内的 ephemeris.json。');
+        if (!result || typeof result !== 'object' || !Array.isArray(result['2001'])) throw new Error('星历文件格式错误，请上传 V1.2 包内的 ephemeris.json。');
         return result;
       })
       .catch(error => { ephemerisPromise = undefined; throw error; });
