@@ -91,3 +91,23 @@ V1.2 将原来的171个 `data/*.json` 合并成 **一个 `ephemeris.json`（约6
 报告结尾新增 Career Tarot 职业启示牌。一次完整分析后点击「翻开我的职业启示牌」，根据当前报告实际 GR/C 信号主题匹配候选牌组，再以固定种子抽取一张，报告 JSON 与 PDF 将携带同一张牌。无网络 API、无需密钥、不会上传出生资料。
 
 示例报告 `sample.html` 也支持翻牌，但它使用虚构的演示数据。塔罗仅提供象征性反思，不构成预测，不影响 Career V2.0 计算。
+
+
+## V1.5 report interpretation update
+- Replaced ambiguous `6 / 0` chart labels with `外部 6 · 行动 0` (GR / C *aspect intervals*, not career scores).
+- The dashboard now summarizes the three years with the most P1-anchored signals for closer observation, **not** years with confirmed promotion or salary increases.
+- Year details show exploratory themes, attention points, risks, and validation actions based on the dominant planet/signal.
+- Promotion, Career Jump, and salary increases are explicitly `not determinable` by GR/C aspect counts alone.
+- Added `interpretation.js` and regression tests. This module does not alter the locked GR/C ephemeris calculations.
+- Zodiac aspects and traditional planet meanings are interpretive and not scientifically validated predictors of real career events.
+
+## V1.7 · 职业结果候选与动态分段
+- 新增 `outcome.js`：按职业点优先级、信号类型、年份内相位所处阶段，输出职位/职责/价值/重构的**观察候选**。
+- 取消固定 2/3/3/2 年分段。阶段按照实际年度主导信号转换自动分组。
+- 同一相位的「进入窗口、接近峰值、峰值后延续」会明确区分；跨年相位可能在多个年份显示，但不是独立的新事件。
+- GR/C 是相位段数，不是成功概率。J（职业跃迁）需要 E/P/V 实际改善两项以上且 S/ST 未明显失败；星盘不能独立证实薪酬涨幅及职业稳定性。
+- 修复旧 PDF 附录仍调用上一版分段函数的运行时问题；网页/导出共用相同候选结论。
+- 报告主题映射为规则性假设，不是经过独立科学验证的职业预测模型；不得用历史已知分类对未来硬套答案。
+
+### GitHub 网页更新
+解压 **V1.7 Update** 并将根目录的 `app.js`、`outcome.js`、`index.html`、`styles.css` 四个文件上传到现有仓库根目录；保留 `ephemeris.json`、`engine.js`、`tarot.js` 等原有文件。完整包所有网页文件位于压缩包根目录，避免额外多一层目录。

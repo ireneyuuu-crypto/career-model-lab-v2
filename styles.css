@@ -93,3 +93,33 @@ footer{background:#fff9fa;border-color:#eee6ec}
 @media(max-width:650px){.career-tarot{grid-template-columns:1fr;padding:30px 20px;gap:24px}.tarot-scene{padding:10px 0}.tarot-content{text-align:center}.tarot-why{text-align:left}.tarot-card{width:180px}}
 @media(prefers-reduced-motion:reduce){.tarot-card{animation:none}}
 @media print{.career-tarot{print-color-adjust:exact;-webkit-print-color-adjust:exact;break-inside:avoid;page-break-inside:avoid;margin-top:30px}.tarot-draw-controls{display:none!important}.tarot-why{display:none}}
+
+/* V1.5: narrative evidence-first report, no fabricated outcome labels */
+.decade-insights{padding:25px 30px;margin:20px 0 28px;border:1px solid #e6dfe8;border-radius:18px;background:#fffafc}
+.decade-insights h3{font-size:23px;color:#51425f;margin:0 0 8px}.decade-insights>p,.decade-insights>small{color:#807889;font-size:13px;line-height:1.7}
+.decade-insight-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:19px 0}
+.decade-insight-card{text-align:left;cursor:pointer;padding:17px;border-radius:12px;background:white;border:1px solid #e9dfeb;color:#51465d;display:flex;flex-direction:column;gap:10px;transition:transform .2s,border-color .2s}
+.decade-insight-card:hover{transform:translateY(-2px);border-color:#b49bbd}.decade-insight-card strong{font-size:15px}.decade-insight-card span{font-size:12px;line-height:1.75;color:#777081}
+.interpretation-card{background:linear-gradient(125deg,#f4eff8,#fffaf8);border:1px solid #e5dce8;border-radius:17px;padding:23px;margin:12px 0 24px}
+.interpretation-kicker{color:#a17f9d;font-size:11px;letter-spacing:.11em;margin-bottom:7px}.interpretation-card h4{margin:0;font-size:24px;color:#51405e}.interpretation-card>p{color:#736879;margin:7px 0 17px}.interpretation-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.interpretation-grid>div{background:#ffffffaa;padding:14px;border:1px solid #eee6ee;border-radius:12px}.interpretation-grid strong{color:#826781;font-size:13px}.interpretation-grid p{color:#5c5665;font-size:13px;line-height:1.75;margin:7px 0 0}.outcome-status{padding-top:18px;margin-top:16px;border-top:1px solid #e2d8e5;color:#625771}.outcome-status strong{font-size:12px}.outcome-status p{font-size:12px;color:#847a89}
+.year-count{font-size:11px!important;white-space:nowrap}.year-bar{min-width:0}
+@media(max-width:760px){.decade-insight-grid,.interpretation-grid{grid-template-columns:1fr}.decade-insights{padding:18px}.interpretation-card{padding:17px}.year-count{font-size:9px!important;white-space:normal}}
+@media print{.decade-insights,.interpretation-card{break-inside:avoid}}
+
+/* V1.6: outcome-oriented chronological narrative */
+.narrative-summary{padding:27px 30px;margin:18px 0 24px;background:#fffcfe;border:1px solid #e8e0eb;border-radius:19px;color:#564b62}
+.narrative-summary>h3{font-size:24px;margin:0 0 7px;font-weight:600}.narrative-summary>p{font-size:13px;line-height:1.75;color:#827787;margin:0 0 18px}
+.narrative-phase{padding:19px 0;border-top:1px solid #e9e1e8}.narrative-phase h4{font-size:19px;color:#57465f;margin:0 0 10px}.narrative-phase p{font-size:14px;line-height:1.95;color:#655b69;margin:6px 0}.narrative-phase small{display:block;margin-top:9px;color:#96788c;font-size:12px;line-height:1.8}
+.narrative-phase details,.narrative-year details{margin-top:10px;color:#8a6d86}.narrative-phase summary,.narrative-year summary{cursor:pointer;font-size:12px}.narrative-phase details p{font-size:12px;color:#877b8c}
+.narrative-disclaimer{padding:13px 15px;background:#f6f1f6;border-radius:10px;color:#7e7082;font-size:12px;line-height:1.9}
+.narrative-year{border-left:3px solid #ac90b5;padding:14px 16px;margin:0 0 25px;background:#f8f3f9;border-radius:0 12px 12px 0}.narrative-year h4{font-size:18px;margin:0 0 10px;color:#554660}.narrative-year p{font-size:13px;line-height:1.9;color:#625668;margin:5px 0}
+@media(max-width:760px){.narrative-summary{padding:18px}.narrative-phase h4{font-size:17px}}
+@media print{.narrative-summary,.narrative-year{break-inside:avoid}}
+
+/* V1.7 conclusion-first cards and expandable technical evidence */
+.decade-insight-card small{color:#947f96;font-size:11px;line-height:1.6}
+.raw-signals{margin:20px 0;padding:15px 18px;border:1px solid #e8dfea;border-radius:12px;background:#fff}
+.raw-signals summary{font-size:13px;font-weight:600;cursor:pointer;color:#6c5674}
+.raw-signals .signal-list{margin-top:16px}
+.narrative-phase p:nth-of-type(2){font-weight:500;color:#58435f}
+@media print{.raw-signals{display:none}.narrative-phase{break-inside:avoid}}
