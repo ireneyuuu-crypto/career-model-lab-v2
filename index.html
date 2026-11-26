@@ -5,6 +5,7 @@
   <meta name="description" content="Career Model Lab：通过星盘数据探索未来十年的职业变化信号。模型结果仅作探索参考。">
   <title>Career Model Lab · 职业发展时间轴</title>
   <link rel="stylesheet" href="./styles.css">
+<style>#app-boot-error[hidden]{display:none!important}</style>
 </head>
 <body>
 <header class="site-header" id="home"><a class="brand" href="#home" aria-label="Career Model Lab 首页"><span class="brand-symbol" aria-hidden="true">✧</span><span>Career Model Lab</span></a><nav class="main-nav" aria-label="主导航"><a href="#home">首页</a><a href="#features">功能介绍</a><a href="#how-it-works">如何使用</a><a href="#terms-section">术语说明</a><a href="./sample.html">示例报告</a></nav><a class="nav-cta" href="#analyze">开始分析 <span aria-hidden="true">↗</span></a></header>
@@ -20,6 +21,7 @@
 <section class="app-shell reveal" id="analyze" aria-labelledby="start-heading">
 <div class="step-indicator"><span class="active" id="step1-label">01 导入星盘</span><span id="step2-label">02 校验信息</span><span id="step3-label">03 10年报告</span></div>
 <div id="import-view" class="view active">
+  <div id="app-boot-error" class="notice error" role="alert" hidden></div>
   <div class="section-heading"><div><div class="kicker">STEP 01 · IMPORT YOUR CHART</div><h2 id="start-heading">粘贴星盘数据</h2><p>请复制占星 App 导出的文字版星盘。也可以体验完全虚构的示范数据（不对应任何真实用户）。</p></div></div>
   <label class="field-label" for="raw-chart">星盘文字数据</label>
   <textarea id="raw-chart" placeholder="粘贴你从占星 App 复制的星盘全文…\n\n例如：\n出生时间：2001-04-17 09:20\n时区：东9区\n经纬度：35.68, 139.69\nMC：天秤座 15°30′" spellcheck="false"></textarea>
@@ -73,6 +75,16 @@
 <section class="bottom-copy"><div class="eyebrow">BUILT WITH TRANSPARENCY</div><h2>每个结论，都应有依据。</h2><p>本工具会区分「可计算的相位」与「尚无现实证据的职业推断」。它不保证升职、加薪或跳槽，也不替代现实中的职业规划与决策。</p></section>
 </main>
 <footer><span>© Career Model Lab · Beta</span><span>星体位置：Swiss Ephemeris / Moshier 预计算数据。分析仅供探索。</span></footer>
-<script src="./landing.js" defer></script><script type="module" src="./app.js"></script>
+<script src="./landing.js" defer></script><script type="module">
+  // Explicit module boot errors: avoid silently dead buttons when a GitHub update misses a dependency.
+  import('./app.js').catch(error => {
+    const problem = document.getElementById('app-boot-error');
+    if (problem) {
+      problem.hidden = false;
+      problem.textContent = '网页功能加载失败：' + (error?.message || 'JavaScript 模块不可用') + '。请将修复包中的所有文件上传到 GitHub 仓库根目录，等待部署完成后强制刷新。';
+    }
+    console.error('Career Model Lab startup failed:', error);
+  });
+</script>
 </body>
 </html>
