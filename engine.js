@@ -113,6 +113,66 @@ function interpolate(a,b,f){let diff=(b-a+540)%360-180;return norm(a+f*diff)}
 export async function ephemerisAt(date){const y=date.getUTCFullYear(),start=Date.UTC(y,0,1),day=(date.getTime()-start)/86400000,ix=Math.floor(day),f=day-ix;const current=await loadYear(y),next=ix+1<current.length?current[ix+1]:(await loadYear(y+1))[0];const a=current[ix];if(!a||!next)throw new Error('星历日期不在支持范围内。');return {...Object.fromEntries(PLANETS.map((p,i)=>[p,interpolate(a[i],next[i],f)])),ayanamsa:interpolate(a[10],next[10],f)};}
 function targetList(natal,mc,cusp2){const p=[{id:'mc',name:'天顶（MC）',longitude:mc,priority:1},{id:'ruler10',name:'第十宫宫主星',longitude:natal[RULERS[Math.floor(mc/30)]],priority:1},{id:'sun',name:'本命太阳',longitude:natal.sun,priority:2},{id:'saturn',name:'本命土星',longitude:natal.saturn,priority:2}];if(cusp2!==null){p.push({id:'cusp2',name:'第二宫宫头',longitude:cusp2,priority:3});p.push({id:'ruler2',name:'第二宫宫主星',longitude:natal[RULERS[Math.floor(cusp2/30)]],priority:3});}return p.filter(t=>Number.isFinite(t.longitude));}
 const dateKey=d=>d.toISOString().slice(0,10);
+// Minimize angular deviation inside a daily bracket; no invented zero-crossings.
+// Source ephemeris is daily with interpolation. Timestamps below are interpolation estimates,
+// not astronomical-grade Swiss Ephemeris exact calculations.
+export async function refineAspectTime({low,high,orbAt,threshold=null}){
+ let a=+new Date(low),b=+new Date(high);
+ if(!(Number.isFinite(a)&&Number.isFinite(b)&&b>a))throw Error('Invalid time bracket');
+ if(threshold!==null){
+  let fa=(await orbAt(new Date(a)))-threshold;
+  let fb=(await orbAt(new Date(b)))-threshold;
+  if(fa*fb>0)return null;
+  for(let i=0;i<22;i++){
+    const mid=(a+b)/2,fm=(await orbAt(new Date(mid)))-threshold;
+    if(fa*fm<=0){b=mid;fb=fm;}else{a=mid;fa=fm;}
+  }
+  return new Date((a+b)/2).toISOString();
+ }
+ // golden section minimization of |angular deviation| for a 48h bracket.
+ const q=(Math.sqrt(5)-1)/2;let x=b-q*(b-a),y=a+q*(b-a);
+ let fx=await orbAt(new Date(x)),fy=await orbAt(new Date(y));
+ for(let i=0;i<25;i++){
+   if(fx<fy){b=y;y=x;fy=fx;x=b-q*(b-a);fx=await orbAt(new Date(x));}
+   else{a=x;x=y;fx=fy;y=a+q*(b-a);fy=await orbAt(new Date(y));}
+ }
+ const mid=(a+b)/2;
+ return {time:new Date(mid).toISOString(),orb:await orbAt(new Date(mid))};
+}
+async function refineEvents(events,context){
+ const {birthUTC,zodiac,natal,targets,begin,end}=context;
+ const adjusted=raw=>Object.fromEntries(PLANETS.map(p=>[p,zodiac==='lahiri'?norm(raw[p]-raw.ayanamsa):raw[p]]));
+ const ms=86400000;
+ for(const e of events){
+  const target=targets.find(t=>t.name===e.target&&t.priority===e.priority);
+  if(!target)continue;
+  const orbAt=async d=>{
+   const sourceDate=e.type==='C'?new Date(birthUTC.getTime()+(d-birthUTC)/365.2422):d;
+   const raw=await ephemerisAt(sourceDate);
+   const moving=adjusted(raw)[e.mover];
+   return aspectOrb(moving,target.longitude,ASPECTS.find(a=>a[0]===e.aspect)[1]);
+  };
+  const samplePeak=Date.parse(e.best+'T00:00:00Z');
+  const bracketLow=Math.max(+begin,samplePeak-ms),bracketHigh=Math.min(+end-ms,samplePeak+ms);
+  if(bracketHigh>bracketLow){
+   const peak=await refineAspectTime({low:new Date(bracketLow),high:new Date(bracketHigh),orbAt});
+   const old=await orbAt(new Date(samplePeak));
+   if(peak.orb<=old+1e-6){e.peakUTC=peak.time;e.best=peak.time.slice(0,10);e.minOrb=peak.orb;}
+  }
+  const activeStart=Date.parse(e.begin+'T00:00:00Z');
+  if(activeStart>+begin){
+   const cross=await refineAspectTime({low:new Date(activeStart-ms),high:new Date(activeStart),orbAt,threshold:e.type==='GR'?3:2});
+   if(cross)e.entryUTC=cross;
+  }
+  const activeEnd=Date.parse(e.end+'T00:00:00Z');
+  if(activeEnd<+end-ms){
+   const cross=await refineAspectTime({low:new Date(activeEnd),high:new Date(activeEnd+ms),orbAt,threshold:e.type==='GR'?3:2});
+   if(cross)e.exitUTC=cross;
+  }
+  e.precision='daily-source interpolated, numerical bracket refinement; not independent astronomical validation';
+ }
+ return events;
+}
 export async function forecast({birthUTC,startYear,mc,cusp2=null,natalOverrides={},zodiac="tropical"}){
  const begin=new Date(Date.UTC(startYear,0,1)),end=new Date(Date.UTC(startYear+10,0,1));
  const adjusted=raw=>Object.fromEntries(PLANETS.map(p=>[p,zodiac==="lahiri"?norm(raw[p]-raw.ayanamsa):raw[p]]));
@@ -141,8 +201,10 @@ export async function forecast({birthUTC,startYear,mc,cusp2=null,natalOverrides=
   for(const [key,e] of active){if(!alive.has(key)){events.push(e);active.delete(key);}}
   day=new Date(day.getTime()+86400000);processed++;
  }
- events.push(...active.values());events.sort((a,b)=>a.best.localeCompare(b.best)||a.priority-b.priority);
+ events.push(...active.values());
+ await refineEvents(events,{birthUTC,zodiac,natal,targets,begin,end});
+ events.sort((a,b)=>a.best.localeCompare(b.best)||a.priority-b.priority);
  const years=Array.from({length:10},(_,i)=>{const y=startYear+i;const subset=events.filter(e=>e.begin<=`${y}-12-31`&&e.end>=`${y}-01-01`);return {year:y,GR:subset.filter(e=>e.type==='GR').length,C:subset.filter(e=>e.type==='C').length,p1:subset.filter(e=>e.type==='GR'&&e.priority===1).length,events:subset};});
- return {birthUTC:birthUTC.toISOString(),mc,cusp2,natal,targets,years,events,settings:{zodiac,position:'geocentric',ephemeris:'Swiss Ephemeris Moshier, daily 00 UTC, linear circular interpolation',grOrb:3,cOrb:2,model:'Career V2.0 signal rules; no event-outcome prediction',daysProcessed:processed}};
+ return {birthUTC:birthUTC.toISOString(),mc,cusp2,natal,targets,years,events,settings:{zodiac,position:'geocentric',ephemeris:'Swiss Ephemeris Moshier daily 00 UTC with circular interpolation and numerical window refinement (not independently checked)',grOrb:3,cOrb:2,model:'Career V2.0 signal rules; no event-outcome prediction',daysProcessed:processed}};
 }
 export function dateHuman(s){return s.replace(/-/g,'/');}

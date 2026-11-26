@@ -1,6 +1,6 @@
 {
   "name": "career-model-lab",
-  "version": "1.8.0-beta",
+  "version": "2.0.0-experimental",
   "type": "module",
   "private": true,
   "scripts": {

@@ -1,3 +1,4 @@
+import {verifyCareerEvent,MODEL_RULES} from './career-v2-canonical.js';
 import {parseChart,validateSettings,calculateMC,forecast,DEMO,CN,dateHuman} from './engine.js';
 import {selectTarot} from './tarot.js';
 import {renderTarot} from './tarot-ui.js';
@@ -34,7 +35,7 @@ function utcYearText(year){return `${year}–${year+9}`}
 function strengthText(n){return n===0?'未检出符合当前规则的相位时间段':`记录到 ${n} 个相位时间段（同一个相位跨年会分别计入对应年份）`}
 function makeEvent(e){const d=document.createElement('article');d.className='signal-card';const top=document.createElement('div');top.className='signal-top';const name=aText(`${CN[e.mover]} ${e.label} ${e.target}`,'div');name.className='signal-name';const badge=aText(e.type+' · P'+e.priority,'span');badge.className='pill '+(e.type==='C'?'blue':'');top.append(name,badge);d.append(top);
  const date=aText(`时间段：${dateHuman(e.begin)} – ${dateHuman(e.end)}  ·  最接近精确相位：${dateHuman(e.best)}`,'p');d.append(date);
- const detail=aText(`${H[e.type]} · 最小计算偏差约 ${e.minOrb.toFixed(2)}°。最接近精确的日期按逐日采样定位，不能保证为精确时刻。`,'small');d.append(detail);return d}
+ const detail=aText(`${H[e.type]} · 最小插值偏差约 ${e.minOrb.toFixed(3)}°。${e.peakUTC?'插值峰值（UTC）：'+e.peakUTC.slice(0,16).replace('T',' ')+'；':''}${e.entryUTC?'进入容许度：'+e.entryUTC.slice(0,16)+'；':''}${e.exitUTC?'离开容许度：'+e.exitUTC.slice(0,16)+'。':''}时间来自逐日星历插值，尚非独立天文精度验证。`,'small');d.append(detail);return d}
 function renderCareerStory(){
  const root=$('narrative-summary');if(!root||!report)return;root.replaceChildren();
  const profiles=decadeProfiles(report), phases=decadePhases(profiles);
@@ -48,7 +49,7 @@ function renderCareerStory(){
 }
 function renderDecadeInsights(){
  const host=$('decade-insights');if(!host)return;host.replaceChildren();
- const profiles=decadeProfiles(report);host.append(aText('二、值得重点观察的职业窗口','h3'),aText('按信号优先级筛选不同类型的代表年份；这是观察优先级，不是职业成功率排名。','p'));
+ const profiles=decadeProfiles(report);host.append(aText('二、值得重点观察的职业窗口','h3'),aText('优先呈现不同性质的关键年份。模型内部指数辅助比较，不代表晋升概率；收入和跃迁不能单凭相位确认。','p'));
  const cards=document.createElement('div');cards.className='decade-insight-grid';
  for(const p of keyWindows(profiles)){const card=document.createElement('button');card.type='button';card.className='decade-insight-card';
  card.append(aText(`${p.year} 年｜${p.kind}`,'strong'),aText(p.headline,'span'),aText(p.evidence[0]?.text||'缺少主要相位证据','small'));
@@ -68,8 +69,9 @@ function renderIndex(){
  const lab=el('text',{x,y:y-14,'text-anchor':'middle',fill:'#f6e8d8','font-size':13,'font-weight':'600'});lab.textContent=d.score;
  const yr=el('text',{x,y:H-16,'text-anchor':'middle',fill:'#d8d0e2','font-size':12});yr.textContent=d.year;
  g.append(halo,dot,lab,yr);const choose=()=>{selectedYear=d.year;renderIndex();renderTimeline();renderYear();};g.addEventListener('click',choose);g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose()}});svg.append(g);});root.append(svg);
- const legend=$('career-index-legend');legend.replaceChildren();for(const d of data){const b=document.createElement('button');b.className='index-year-chip'+(selectedYear===d.year?' active':'');b.type='button';b.append(aText(d.year+' · '+d.label,'strong'),aText(d.score+' / 100 · 实验指数','span'));b.addEventListener('click',()=>{selectedYear=d.year;renderIndex();renderTimeline();renderYear();});legend.append(b);}
+ const legend=$('career-index-legend');legend.replaceChildren();for(const d of data){const b=document.createElement('button');b.className='index-year-chip'+(selectedYear===d.year?' active':'');b.type='button';b.append(aText(d.year+' · '+d.label,'strong'),aText(d.score+' / 100 · 模型内部比较','span'));b.addEventListener('click',()=>{selectedYear=d.year;renderIndex();renderTimeline();renderYear();});legend.append(b);}
  $('career-index-method').textContent=INDEX_METHOD;
+ const selected=data.find(d=>d.year===selectedYear); if(selected){const box=document.createElement('p');box.className='index-focused-summary';box.textContent=`${selected.year} 年模型指数 ${selected.score}/100；主要主题：${selected.label}。机会 ${selected.components.opportunity}、职责 ${selected.components.expansion}、职位 ${selected.components.position}、价值 ${selected.components.value}；结构变化成本调整 ${selected.costPenalty}。组织支持与变化后稳定性没有现实证据，不计算为实际好坏。`;root.append(box);}
 }
 function renderUserOverview(){const root=$('user-overview');root.replaceChildren();const phases=report.careerPhases||decadePhases(decadeProfiles(report));const windows=keyWindows(report.outcomeProfiles||decadeProfiles(report));
  root.append(aText('十年职业发展，一眼看懂','h3'));
@@ -112,7 +114,33 @@ function render(){const first=report.years[0].year;$('range-label').textContent=
 async function analyze(){const opts=getVal(),validation=validateSettings(opts);if(validation.errors.length){message('parse-warnings',validation.errors.join(' '),'error');return}
  $('analyze-btn').disabled=true;$('generation-scene').classList.add('active');$('calc-status').textContent='正在加载星历、计算十年的相位时间段…';
  try{const birthUTC=validation.utc;const zodiac=$('zodiac-mode').value;const natRaw=await import('./engine.js').then(x=>x.ephemerisAt(birthUTC));const mc=opts.mc===''?((calculateMC(birthUTC,Number(opts.long))-(zodiac==='lahiri'?natRaw.ayanamsa:0)+360)%360):Number(opts.mc);const cusp2=opts.cusp2===''?null:Number(opts.cusp2);report=await forecast({birthUTC,startYear:opts.startYear,mc,cusp2,natalOverrides:chart.extracted.natal,zodiac});report.interpretation=interpretDecade(report);report.outcomeProfiles=decadeProfiles(report);report.careerIndex=indexForDecade(report);report.careerPhases=decadePhases(report.outcomeProfiles);report.source={sourceLength:$('raw-chart').value.length,parsedOverrideCount:Object.keys(chart.extracted.natal).length};selectedYear=opts.startYear;render();}catch(e){$('calc-status').textContent='计算失败：'+e.message;}finally{$('analyze-btn').disabled=false;$('generation-scene').classList.remove('active');}}
-function renderPrintAll(){const root=$('print-all');root.replaceChildren();root.append(aText('附录：完整十年职业主题与相位明细','h2'));root.append(aText('十年实验性指数：'+(report.careerIndex||[]).map(v=>v.year+'年 '+v.score+'/100').join('；'),'p'),aText(INDEX_METHOD,'p'));const story=decadePhases(decadeProfiles(report));for(const g of story){const sec=document.createElement('section');sec.className='print-year';sec.append(aText(g.range+'｜'+g.title,'h3'),aText(g.lead+' 机会重点：'+g.opportunity+' 主要风险：'+g.risk,'p'));root.append(sec);}for(const year of report.years){const sec=document.createElement('section');sec.className='print-year';sec.append(aText(year.year+' 年 · GR '+year.GR+' 段 / C '+year.C+' 段','h3'));const info=yearProfile(year);sec.append(aText('候选类型：'+info.kind+'。'+info.summary+' 机会重点：'+info.opportunity+' 主要风险：'+info.risk,'p'));sec.append(aText(info.valueLabel+'；'+info.jump+'；'+info.support,'p'));if(!year.events.length)sec.append(aText('本年未检出规则命中相位段。','p'));for(const e of year.events)sec.append(makeEvent(e));root.append(sec)}}
+function renderPrintAll(){const root=$('print-all');root.replaceChildren();root.append(aText('附录：完整十年职业主题与相位明细','h2'));if(lastVerification)root.append(aText('已发生职业事件的独立核验：'+JSON.stringify(lastVerification),'p'));root.append(aText('十年实验性指数：'+(report.careerIndex||[]).map(v=>v.year+'年 '+v.score+'/100').join('；'),'p'),aText(INDEX_METHOD,'p'));const story=decadePhases(decadeProfiles(report));for(const g of story){const sec=document.createElement('section');sec.className='print-year';sec.append(aText(g.range+'｜'+g.title,'h3'),aText(g.lead+' 机会重点：'+g.opportunity+' 主要风险：'+g.risk,'p'));root.append(sec);}for(const year of report.years){const sec=document.createElement('section');sec.className='print-year';sec.append(aText(year.year+' 年 · GR '+year.GR+' 段 / C '+year.C+' 段','h3'));const info=yearProfile(year);sec.append(aText('候选类型：'+info.kind+'。'+info.summary+' 机会重点：'+info.opportunity+' 主要风险：'+info.risk,'p'));sec.append(aText(info.valueLabel+'；'+info.jump+'；'+info.support,'p'));if(!year.events.length)sec.append(aText('本年未检出规则命中相位段。','p'));for(const e of year.events)sec.append(makeEvent(e));root.append(sec)}}
 function saveJson(){if(!report)return;const blob=new Blob([JSON.stringify(report,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`career-model-lab-${report.years[0].year}-${report.years.at(-1).year}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),3000)}
+const EVENT_FIELDS=[
+ ['O','确实出现新的职业机会'],['E','实际职责、权限或影响力明显扩大（不只是工作量）'],
+ ['P','正式职位、职级或组织位置提高'],['V','薪酬、资源或市场价值明显提高'],
+ ['S','组织提供了足够支持和资源'],['ST','变化后3–6个月持续稳定'],
+ ['R','这次变化属于主动的职业方向或结构重定位']
+];
+let lastVerification=null;
+function setupCareerVerification(){
+ const root=$('event-review-inputs');if(!root)return;
+ for(const [key,label] of EVENT_FIELDS){
+   const row=document.createElement('label');row.className='event-review-field';row.append(aText(label,'span'));
+   const select=document.createElement('select');select.id='review-'+key;
+   for(const [value,text] of [['unknown','尚未核实'],['yes','是'],['no','否']]){
+     const opt=document.createElement('option');opt.value=value;opt.textContent=text;select.append(opt);
+   }
+   row.append(select);root.append(row);
+ }
+ $('review-run').addEventListener('click',()=>{
+   const f={Cost:$('review-cost').value};for(const [key] of EVENT_FIELDS){const v=$('review-'+key).value;f[key]=v==='yes'?true:v==='no'?false:null;}
+   const r=verifyCareerEvent(f);lastVerification=r;if(report)report.observedEventVerification=r;
+   const terms={J:'已核实的实质职业跃迁',R:'职业重构／重新定位',P:'正式职位变化',E:'职责或影响力扩张',O:'出现新的机会','0':'未记录上述类型的变化',undetermined:'现实信息尚不足以分类'};
+   $('event-review-result').textContent='核验结果：'+terms[r.type]+'。'+r.explanation+(r.tags.length?' 备注：'+r.tags.join('；')+'。':'')+(r.pending.length?' 待补证据：'+r.pending.join('；')+'。':'');
+   if(report)renderPrintAll();
+ });
+}
+setupCareerVerification();
 $('tarot-draw-btn').addEventListener('click',()=>{if(!report||report.tarot)return;report.tarot=selectTarot(report);renderTarot($('career-tarot'),report.tarot);$('tarot-draw-controls').hidden=true;});
 $('demo-btn').addEventListener('click',()=>{$('raw-chart').value=DEMO});$('parse-btn').addEventListener('click',parseAction);$('back-btn').addEventListener('click',()=>view('import-view'));$('analyze-btn').addEventListener('click',analyze);$('restart-btn').addEventListener('click',()=>{selectedYear=null;report=null;view('import-view')});$('year-select').addEventListener('change',e=>{selectedYear=+e.target.value;renderTimeline();renderYear()});$('print-btn').addEventListener('click',()=>window.print());$('print-bottom-btn').addEventListener('click',()=>window.print());$('json-btn').addEventListener('click',saveJson);

@@ -127,3 +127,17 @@ footer{background:#fff9fa;border-color:#eee6ec}
 /* V1.8 — statement-first career outlook and experimental index */
 .user-overview,.career-index-panel{border:1px solid rgba(218,195,170,.25);border-radius:22px;padding:28px;margin:20px 0;background:linear-gradient(145deg,rgba(60,53,89,.65),rgba(32,35,63,.9));color:#f6f0f8;box-shadow:0 20px 42px rgba(5,5,18,.12)}
 .user-overview h3,.career-index-panel h3{color:#f8efea;font-size:clamp(1.35rem,2.3vw,2rem);margin:0 0 16px}.user-overview p,.career-index-panel p{color:#d7d0e3;line-height:1.8}.overview-takeaways{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:22px 0}.overview-takeaways>div{border-top:1px solid rgba(220,191,159,.55);padding-top:12px;color:#f4e6d8}.career-index-chart svg{width:100%;height:auto;max-height:350px;display:block;overflow:visible}.career-index-chart g[role=button]{cursor:pointer;outline:none}.career-index-chart g[role=button]:focus circle{stroke:#ffe0a8;stroke-width:5}.career-index-legend{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:12px}.index-year-chip{border:1px solid rgba(218,195,170,.26);border-radius:12px;padding:10px 8px;text-align:left;color:#f4ecef;background:rgba(255,255,255,.04);cursor:pointer;min-height:66px}.index-year-chip.active{border-color:#ebd0ab;background:rgba(235,208,171,.12)}.index-year-chip strong{font-size:12px;display:block}.index-year-chip span{font-size:11px;display:block;color:#c3b8d0;margin-top:4px}.index-method{margin-top:20px;color:#dfd3e5;font-size:13px;line-height:1.8}.index-method summary,.tech-stats summary,.raw-signal-panel summary{cursor:pointer}.index-method div{margin-top:8px}.tech-stats{margin:20px 0}.raw-signal-panel{margin-top:24px}.raw-signal-panel summary{margin-bottom:20px}.career-index-panel .kicker{color:#ddc3a6}@media(max-width:720px){.user-overview,.career-index-panel{padding:19px}.overview-takeaways{grid-template-columns:1fr}.career-index-legend{grid-template-columns:repeat(2,minmax(0,1fr))}.career-index-chart{overflow-x:auto}.career-index-chart svg{min-width:560px}}@media print{.career-index-legend button{color:#27243f!important}.career-index-chart svg{max-height:260px}.index-method,.tech-stats{display:block!important}.career-index-panel,.user-overview{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+
+/* Frozen-model, observed-event verification: quiet and readable */
+.event-review-panel{margin:36px 0;padding:28px;border:1px solid rgba(203,186,204,.3);border-radius:22px;background:rgba(242,236,246,.045)}
+.event-review-panel h3{margin:8px 0 10px;font-size:1.45rem;color:#eee5ef}
+.event-review-panel p{line-height:1.7;color:#d0c6d7}
+.event-review-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:20px 0}
+.event-review-field{display:flex;flex-direction:column;gap:8px;color:#ece6f0;font-size:.92rem}
+.event-review-field select,.event-review-cost select{width:100%;padding:10px 12px;border:1px solid #6a607a;border-radius:10px;background:#24243d;color:#fff}
+.event-review-cost{display:block;max-width:280px;color:#e9dfed;margin-bottom:18px}
+.event-review-cost select{margin-top:8px}
+#event-review-result{margin-top:16px}
+@media(max-width:640px){.event-review-grid{grid-template-columns:1fr}.event-review-panel{padding:20px}}
+
+.index-focused-summary{border:1px solid rgba(219,197,165,.4);border-radius:12px;background:rgba(231,211,190,.08);padding:12px 16px;color:#e8deea;font-size:14px;line-height:1.7;margin-top:14px;}
