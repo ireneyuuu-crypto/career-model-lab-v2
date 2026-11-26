@@ -53,3 +53,20 @@ export function decadePhases(profiles){
 }
 export function keyWindows(profiles){const ranked=profiles.filter(p=>p.primaryCount>0||p.financeCount>0).sort((a,b)=>b.score-a.score||a.year-b.year);const chosen=[];const used=new Set();for(const p of ranked){if(used.has(p.theme))continue;chosen.push(p);used.add(p.theme);if(chosen.length===4)break;}return chosen.length?chosen:profiles.slice(0,2);}
 export function modelCaveat(){return '以上职业事件是透明的规则性主题候选，不是已经完成外部验证的升职、收入或职业跃迁预测。J 的现实认定需要 E/P/V 至少两项实质提升，且 S/ST 未明显失败；本软件没有这些现实证据，不能推算具体涨幅。';}
+
+// Extra presentation layer: named candidate WINDOWS, not observed promotions/pay rises.
+// Candidate identification is based solely on already-computed yearly GR signals.
+export function forecastWindowSummary(report) {
+ const years=(report.years||[]).map(y=>{
+  const e=clean(y.events||[]).filter(x=>x.type==='GR');
+  const primary=e.filter(PRIMARY), finance=e.filter(FINANCE);
+  const growth=primary.filter(x=>x.mover==='jupiter'),position=primary.filter(x=>x.mover==='saturn');
+  const major=e.filter(x=>x.priority===1&&RESTRUCTURE.has(x.mover));
+  const jumpSignals=(growth.length>0||position.length>0)&&finance.length>0;
+  return {year:y.year,jumpCandidate:jumpSignals,valueCandidate:finance.length>0,restructureCandidate:major.length>0,
+   roleCandidate:position.length>0,opportunityCandidate:growth.length>0,
+   evidence:[...new Map([...primary,...finance].map(x=>[x.id,x])).values()].slice(0,4).map(x=>({begin:x.begin,end:x.end,best:x.best,mover:x.mover,target:x.target}))};
+ });
+ return {years,jump:years.filter(y=>y.jumpCandidate),value:years.filter(y=>y.valueCandidate),
+  restructure:years.filter(y=>y.restructureCandidate),position:years.filter(y=>y.roleCandidate)};
+}

@@ -3,7 +3,7 @@ import {parseChart,validateSettings,calculateMC,forecast,DEMO,CN,dateHuman} from
 import {selectTarot} from './tarot.js';
 import {renderTarot} from './tarot-ui.js';
 import {interpretDecade,interpretYear} from './interpretation.js';
-import {decadeProfiles,decadePhases,keyWindows,yearProfile,modelCaveat} from './outcome.js';
+import {decadeProfiles,decadePhases,keyWindows,yearProfile,forecastWindowSummary,modelCaveat} from './outcome.js';
 import {indexForDecade,INDEX_METHOD} from './career-index.js';
 const $=id=>document.getElementById(id);
 let chart=null,report=null,selectedYear=null;
@@ -55,6 +55,25 @@ function renderDecadeInsights(){
  card.append(aText(`${p.year} 年｜${p.kind}`,'strong'),aText(p.headline,'span'),aText(p.evidence[0]?.text||'缺少主要相位证据','small'));
  card.addEventListener('click',()=>{selectedYear=p.year;renderTimeline();renderIndex();renderYear();$('year-detail').scrollIntoView({behavior:'smooth',block:'start'});});cards.append(card);}
  host.append(cards,aText('“薪酬/价值”只标示相关议题，不能推算涨幅。“跃迁条件”不是已确认发生的职业跃迁。','small'));
+}
+function renderForecastFocus(){
+ const root=$('forecast-focus');if(!root||!report)return;root.replaceChildren();
+ root.append(aText('未来跃迁与收入：重点观察哪些年份？','h3'));
+ root.append(aText('以下是由现有天象规则识别的候选窗口，不是已经预测到真实升职或涨薪；不会虚构薪资金额、涨幅或成功概率。','p'));
+ const info=forecastWindowSummary(report);
+ const groups=[
+  {title:'多维职业跃迁条件候选',years:info.jump,empty:'这十年没有同时检出主要职业点的扩展/位置主题与第二宫价值主题，不能因此断言不会跃迁。',explain:'同时出现职位/职责与价值相关的模型主题；实际跃迁仍需至少两项实质改善及组织支持、稳定性验证。'},
+  {title:'收入与职业价值观察窗口',years:info.value,empty:'这十年未检出直接的第二宫价值主题，无法指定涨薪年份。',explain:'代表薪酬、资源或市场价值议题可能值得留意，不意味着一定加薪。'},
+  {title:'职位与责任变化窗口',years:info.position,empty:'未检出相应的主要职位责任主题。',explain:'值得关注正式职责与授权变化，不等于已发生晋升。'},
+  {title:'职业重新定位窗口',years:info.restructure,empty:'未检出主要职业点的重构主题。',explain:'变化强度不能直接当作发展好坏；转型不自动等于向上。'}
+ ];
+ const grid=document.createElement('div');grid.className='forecast-focus-grid';
+ for(const group of groups){const card=document.createElement('section');card.className='forecast-focus-card';card.append(aText(group.title,'h4'));
+  const years=group.years.map(y=>y.year);card.append(aText(years.length?years.join(' · '):'暂无明确候选年份','div'));card.lastChild.className='forecast-focus-years';
+  card.append(aText(years.length?group.explain:group.empty,'p'));
+  if(years.length){const buttons=document.createElement('div');buttons.className='forecast-year-links';for(const y of group.years){const b=document.createElement('button');b.type='button';b.textContent=y.year+'年详情';b.addEventListener('click',()=>{selectedYear=y.year;renderIndex();renderTimeline();renderYear();$('year-detail').scrollIntoView({behavior:'smooth',block:'start'})});buttons.append(b)}card.append(buttons)}
+  grid.append(card);
+ }root.append(grid);
 }
 function renderIndex(){
  const data=report.careerIndex||indexForDecade(report),root=$('career-index-chart');root.replaceChildren();
@@ -110,7 +129,7 @@ function renderYear(){
 function renderGlossary(){const g=$('glossary');g.replaceChildren();for(const [short,zh,explain] of GLOSSARY){const box=document.createElement('div');box.className='term';box.append(aText(short,'strong'),aText(' '+zh,'div'),aText(explain,'p'));g.append(box)}}
 function render(){const first=report.years[0].year;$('range-label').textContent=`${utcYearText(first)} · 根据天文黄经与已冻结的 Career V2.0 GR/C 规则计算`;
  message('report-notice','报告首先呈现规则性职业主题候选，并按证据动态划分阶段。GR/C 为相位活跃段数，非分数、概率。职位、价值和跃迁均需要现实证据，报告不会给出确定的涨薪比例。','caution');
- if(!selectedYear)selectedYear=first;renderUserOverview();renderIndex();renderCareerStory();renderDecadeInsights();renderStats();renderTimeline();renderYear();renderGlossary();renderPrintAll();renderTarot($('career-tarot'),report.tarot||null);$('tarot-draw-controls').hidden=Boolean(report.tarot);view('results-view');}
+ if(!selectedYear)selectedYear=first;renderUserOverview();renderIndex();renderForecastFocus();renderCareerStory();renderDecadeInsights();renderStats();renderTimeline();renderYear();renderGlossary();renderPrintAll();renderTarot($('career-tarot'),report.tarot||null);$('tarot-draw-controls').hidden=Boolean(report.tarot);view('results-view');}
 async function analyze(){const opts=getVal(),validation=validateSettings(opts);if(validation.errors.length){message('parse-warnings',validation.errors.join(' '),'error');return}
  $('analyze-btn').disabled=true;$('generation-scene').classList.add('active');$('calc-status').textContent='正在加载星历、计算十年的相位时间段…';
  try{const birthUTC=validation.utc;const zodiac=$('zodiac-mode').value;const natRaw=await import('./engine.js').then(x=>x.ephemerisAt(birthUTC));const mc=opts.mc===''?((calculateMC(birthUTC,Number(opts.long))-(zodiac==='lahiri'?natRaw.ayanamsa:0)+360)%360):Number(opts.mc);const cusp2=opts.cusp2===''?null:Number(opts.cusp2);report=await forecast({birthUTC,startYear:opts.startYear,mc,cusp2,natalOverrides:chart.extracted.natal,zodiac});report.interpretation=interpretDecade(report);report.outcomeProfiles=decadeProfiles(report);report.careerIndex=indexForDecade(report);report.careerPhases=decadePhases(report.outcomeProfiles);report.source={sourceLength:$('raw-chart').value.length,parsedOverrideCount:Object.keys(chart.extracted.natal).length};selectedYear=opts.startYear;render();}catch(e){$('calc-status').textContent='计算失败：'+e.message;}finally{$('analyze-btn').disabled=false;$('generation-scene').classList.remove('active');}}

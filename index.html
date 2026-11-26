@@ -50,14 +50,15 @@
   <div class="section-heading results-heading"><div><div class="kicker">YOUR 10-YEAR CAREER EXPLORER</div><h2>十年职业发展时间轴</h2><p id="range-label"></p></div><div class="report-actions"><button class="button muted" id="print-btn">打印 / 保存 PDF</button><button class="button muted" id="json-btn">导出数据</button></div></div>
   <div id="report-notice" class="notice caution"></div>
   <section id="user-overview" class="user-overview" aria-label="十年职业总体结论"></section>
-  <section class="career-index-panel" aria-labelledby="career-index-title"><div class="panel-heading"><div><p class="kicker">CAREER DEVELOPMENT INDEX</p><h3 id="career-index-title">十年职业发展综合指数</h3><p>CDI v2.0 已写明可复现评分规则：按时间窗口的职业机会、职责、职位和价值主题形成十年曲线。该指数是新增的模型内部对比指标，不是经过现实结果验证的成功概率。</p></div></div><div id="career-index-chart" class="career-index-chart"></div><div id="career-index-legend" class="career-index-legend"></div><details class="index-method"><summary>指数怎么算？哪些信息尚不能判断？</summary><div id="career-index-method"></div></details></section>
+  <section class="career-index-panel" aria-labelledby="career-index-title"><div class="panel-heading"><div><p class="kicker">CAREER DEVELOPMENT INDEX</p><h3 id="career-index-title">十年职业发展综合指数</h3><p>分数用于比较同一份报告中不同年份的模型主题强弱，不代表真实职业水平或成功率。50分是未检出相关信号时的公式起点，不是及格线；重构信号会产生模型代价扣减。</p></div></div><div id="career-index-chart" class="career-index-chart"></div><div id="career-index-legend" class="career-index-legend"></div><details class="index-method"><summary>指数怎么算？哪些信息尚不能判断？</summary><div id="career-index-method"></div></details></section>
   <details class="tech-stats"><summary>查看原始天象统计（专业信息）</summary><div class="stat-grid" id="summary-stats"></div></details>
+  <section id="forecast-focus" class="forecast-focus" aria-label="跃迁与收入候选时间窗口"></section>
   <section id="narrative-summary" class="narrative-summary"></section>
   <section id="decade-insights" class="decade-insights"></section>
   <details class="panel raw-signal-panel"><summary>查看专业图表：十年相位活跃段数</summary><div class="panel-heading"><div><h3>原始天象信号分布（技术附录）</h3><p>每列下方分别列出外部变化信号与个人行动信号的相位段数；它们不是评分、成功率或升职概率</p></div><div class="legend"><span><i class="swatch pink"></i>GR 外部变化</span><span><i class="swatch blue"></i>C 个人行动</span></div></div><div id="timeline" class="timeline" role="group" aria-label="十年职业信号柱状图"></div></details>
   <div class="year-section"><div class="year-selector"><div><div class="kicker">YEARLY DETAIL</div><h3 id="year-title">年度详情</h3></div><select id="year-select" aria-label="选择分析年份"></select></div><div id="year-detail"></div></div>
   <div class="panel"><h3>如何理解结果？</h3><p class="glossary-intro">点开术语，也能了解每项结果的含义和局限。</p><div class="glossary" id="glossary"></div></div>
-  <section class="event-review-panel" id="event-review" aria-labelledby="event-review-title">
+  <details class="event-review-panel" id="event-review" aria-labelledby="event-review-title"><summary>历史职业事件核验（可选 · 不参与未来预测）</summary>
     <div class="kicker">FORMAL MODEL · REALITY CHECK</div>
     <h3 id="event-review-title">现实职业事件核验</h3>
     <p>想知道某次实际换岗、晋升或职责变化是否属于真正的职业跃迁？按真实情况选择。此处执行冻结的职业结果判定；星盘相位不能代替现实证据。</p>
@@ -65,7 +66,7 @@
     <label class="event-review-cost">变化代价 <select id="review-cost"><option value="unknown">暂不确定</option><option value="normal">一般</option><option value="high">明显较高</option></select></label>
     <button class="button muted" type="button" id="review-run">核验这次职业变化</button>
     <div id="event-review-result" class="notice neutral" aria-live="polite">此工具只验证已经发生的职业事件，不将未来的推测自动判成晋升或涨薪。</div>
-  </section>
+  </details>
   <section id="print-all" class="print-all"></section>
   <section id="career-tarot" class="career-tarot" aria-live="polite"></section>
   <div class="tarot-draw-controls" id="tarot-draw-controls"><button class="button primary" id="tarot-draw-btn" type="button">✦ 翻开我的职业启示牌</button><p>每份报告只抽取一次；牌面会随报告一起导出。</p></div>
