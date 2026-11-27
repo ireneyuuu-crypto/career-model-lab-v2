@@ -5,6 +5,7 @@ import {renderTarot} from './tarot-ui.js';
 import {interpretDecade,interpretYear} from './interpretation.js';
 import {decadeProfiles,decadePhases,keyWindows,yearProfile,forecastWindowSummary,modelCaveat} from './outcome.js';
 import {indexForDecade,INDEX_METHOD,CDI_WEIGHTS} from './career-index.js';
+import {detailedYear} from './year-details.js';
 const $=id=>document.getElementById(id);
 let chart=null,report=null,selectedYear=null;
 const H={GR:'外部职业变化信号',C:'个人行动时钟'};
@@ -42,6 +43,14 @@ function renderCareerStory(){
  root.append(aText('一、未来十年的职业发展主线','h3'),aText('阶段边界依据每年主导职业信号的变化自动划分，不再强制分成固定年数。以下是职业事件候选主题，不是实际升职或涨薪记录。','p'));
  for(const phase of phases){const sec=document.createElement('section');sec.className='narrative-phase';
  sec.append(aText(`${phase.range}｜${phase.title}`,'h4'),aText(phase.lead,'p'),aText(`这一阶段最值得检验：${phase.opportunity}`,'p'),aText(`主要风险：${phase.risk}`,'p'));
+ const yearlist=document.createElement('div');yearlist.className='phase-yearlist';
+ for(const yr of report.years.filter(v=>v.year>=phase.start&&v.year<=phase.end)){
+  const n=report.years.indexOf(yr),d=detailedYear(yr,report.years[n-1]||null,report.years[n+1]||null);
+  const b=document.createElement('button');b.type='button';b.className='phase-yearitem';
+  b.append(aText(`${yr.year}｜${d.title}`,'strong'),aText(d.foreground,'span'));
+  b.addEventListener('click',()=>{selectedYear=yr.year;renderIndex();renderTimeline();renderYear();$('year-detail').scrollIntoView({behavior:'smooth',block:'start'});});
+  yearlist.append(b);
+ }sec.append(yearlist);
  const detail=document.createElement('details');detail.append(aText(`为何划入这一阶段？代表年份 ${phase.turningYear} 年 · ${phase.signal}`,'summary'));
  for(const e of phase.evidence)detail.append(aText(`${e.text}（活跃 ${e.begin} 至 ${e.end}，最接近 ${e.best}）`,'p'));
  sec.append(detail);root.append(sec);}
@@ -109,24 +118,24 @@ function renderUserOverview(){const root=$('user-overview');root.replaceChildren
 function renderStats(){const gr=report.events.filter(e=>e.type==='GR'),c=report.events.filter(e=>e.type==='C');const highest=Math.max(...report.years.map(y=>y.p1));const strong=report.years.filter(y=>y.p1===highest&&highest>0).map(y=>y.year);const values=[['GR',gr.length,'外部职业变化相位段'],['C',c.length,'个人行动时钟相位段'],[highest?strong.join('、'):'—',highest?'':'无明显主信号','P1 最密集年份 · 数量不等于升职概率']];$('summary-stats').replaceChildren();for(const [num,label,desc] of values){const div=document.createElement('div');div.className='stat';const v=aText(num,'div');v.className='val';div.append(v,aText(label?label+' · '+desc:desc,'p'));$('summary-stats').append(div)}}
 function renderTimeline(){const max=Math.max(1,...report.years.map(y=>y.GR+y.C));$('timeline').replaceChildren();$('year-select').replaceChildren();for(const y of report.years){const b=document.createElement('button');b.type='button';b.className='year-bar'+(selectedYear===y.year?' active':'');b.setAttribute('aria-label',`${y.year}年，GR ${y.GR}，C ${y.C}`);const v=document.createElement('div');v.className='bar-vessel';const g=document.createElement('div');g.className='bar-pink';g.style.height=(y.GR/max*116)+'px';const c=document.createElement('div');c.className='bar-blue';c.style.height=(y.C/max*116)+'px';v.append(g,c);b.append(v,aText(y.year,'span'),aText(`外部 ${y.GR}段 · 行动 ${y.C}段`,'span'));b.children[1].className='year-label';b.children[2].className='year-count';b.addEventListener('click',()=>{selectedYear=y.year;renderTimeline();renderIndex();renderYear();});$('timeline').append(b);const opt=document.createElement('option');opt.value=y.year;opt.textContent=y.year+' 年';$('year-select').append(opt)}$('year-select').value=selectedYear;}
 function renderYear(){
- const y=report.years.find(v=>v.year===selectedYear);$('year-title').textContent=`${selectedYear} 年 · 职业机会与关键证据`;
- const root=$('year-detail');root.replaceChildren();const p=yearProfile(y);
- const overview=document.createElement('section');overview.className='interpretation-card';
- const tag=aText('年度事件判断 · 预测候选，不代表已发生','div');tag.className='interpretation-kicker';
- const activation=classifyActivation({gr:y.GR>0,c:y.C>0});
- overview.append(tag,aText(p.kind,'h4'),aText('变化节奏：'+activation.label,'p'),aText(p.headline,'p'),aText(p.summary,'p'));
+ const y=report.years.find(v=>v.year===selectedYear),i=report.years.indexOf(y);
+ const d=detailedYear(y,report.years[i-1]||null,report.years[i+1]||null);
+ $('year-title').textContent=`${selectedYear} 年 · ${d.title}`;
+ const root=$('year-detail');root.replaceChildren();
+ const overview=document.createElement('section');overview.className='interpretation-card rich-year';
+ const kicker=aText(`年度重点 · ${d.kind} · 预测主题候选`,'div');kicker.className='interpretation-kicker';
+ overview.append(kicker,aText(d.title,'h4'),aText(d.main,'p'));
+ const difference=aText(d.relative,'p');difference.className='year-contrast';overview.append(difference);
+ const fg=document.createElement('section');fg.className='year-focus-block';fg.append(aText('为什么这一年不同？','h5'),aText(d.foreground,'p'));overview.append(fg);
  const grid=document.createElement('div');grid.className='interpretation-grid';
- for(const [label,val] of [['这一年的机会重点',p.opportunity],['主要风险',p.risk],['现实验证重点',p.jump]]){
+ for(const [label,val] of [['这一年的主要职业判断',d.interaction],['值得提前准备的事',d.action],['主要风险与边界',d.risk]]){
  const cell=document.createElement('div');cell.append(aText(label,'strong'),aText(val,'p'));grid.append(cell)}
- overview.append(grid);
- const status=document.createElement('div');status.className='outcome-status';status.append(aText('结果维度（条件观察）','strong'));
- for(const line of [p.valueLabel,p.support,p.cost])status.append(aText(line,'p'));overview.append(status);root.append(overview);
- const lead=aText(`模型信号：GR 外部变化 ${y.GR} 段，C 个人行动 ${y.C} 段；其中 P1 主要职业点 ${y.p1} 段。这里的“段”指相位活跃时间区间，跨年可能重复显示，不能视为概率或职业成功分。`,'p');lead.className='year-lead';root.append(lead);
- const evidence=document.createElement('section');evidence.className='narrative-year';evidence.append(aText('关键证据与时间关系','h4'));
- if(p.evidence.length)for(const item of p.evidence)evidence.append(aText(`• ${item.text}。活跃期 ${item.begin}—${item.end}；最接近精确 ${item.best}。`,'p'));
- else evidence.append(aText('没有足够的主要相位证据。','p'));
- root.append(evidence);
- const detail=document.createElement('details');detail.className='raw-signals';detail.append(aText(`展开全部 ${y.events.length} 条技术相位记录`,'summary'));
+ overview.append(grid,aText(d.preview,'p'));
+ const uncertainty=document.createElement('div');uncertainty.className='year-uncertainty';uncertainty.append(aText('现实结果尚未确认','strong'),aText(d.unknown,'p'));overview.append(uncertainty);root.append(overview);
+ const focus=document.createElement('section');focus.className='narrative-year';focus.append(aText('本年最重要的相位及时间关系','h4'));
+ if(!d.focus.length)focus.append(aText('本年没有足够的模型触发供单独标注。','p'));
+ for(const f of d.focus){const item=document.createElement('div');item.className='year-trigger';item.append(aText(f.label,'strong'),aText(f.when,'p'),aText(`活跃期 ${f.begin}—${f.end}；最接近精确 ${f.best}`,'small'));focus.append(item)}root.append(focus);
+ const detail=document.createElement('details');detail.className='raw-signals';detail.append(aText(`查看模型技术依据：GR ${y.GR} 段 / C ${y.C} 段 · 共 ${y.events.length} 条`,'summary'));
  const list=document.createElement('div');list.className='signal-list';for(const e of [...y.events].sort((a,b)=>a.priority-b.priority||a.best.localeCompare(b.best)))list.append(makeEvent(e));detail.append(list);root.append(detail);
  const caveat=document.createElement('div');caveat.className='notice neutral';caveat.textContent=modelCaveat();root.append(caveat);
 }
@@ -137,7 +146,7 @@ function render(){const first=report.years[0].year;$('range-label').textContent=
 async function analyze(){const opts=getVal(),validation=validateSettings(opts);if(validation.errors.length){message('parse-warnings',validation.errors.join(' '),'error');return}
  $('analyze-btn').disabled=true;$('generation-scene').classList.add('active');$('calc-status').textContent='正在加载星历、计算十年的相位时间段…';
  try{const birthUTC=validation.utc;const zodiac=$('zodiac-mode').value;const natRaw=await import('./engine.js').then(x=>x.ephemerisAt(birthUTC));const mc=opts.mc===''?((calculateMC(birthUTC,Number(opts.long))-(zodiac==='lahiri'?natRaw.ayanamsa:0)+360)%360):Number(opts.mc);const cusp2=opts.cusp2===''?null:Number(opts.cusp2);report=await forecast({birthUTC,startYear:opts.startYear,mc,cusp2,natalOverrides:chart.extracted.natal,zodiac});report.interpretation=interpretDecade(report);report.outcomeProfiles=decadeProfiles(report);report.careerIndex=indexForDecade(report);report.careerPhases=decadePhases(report.outcomeProfiles);report.source={sourceLength:$('raw-chart').value.length,parsedOverrideCount:Object.keys(chart.extracted.natal).length};selectedYear=opts.startYear;render();}catch(e){$('calc-status').textContent='计算失败：'+e.message;}finally{$('analyze-btn').disabled=false;$('generation-scene').classList.remove('active');}}
-function renderPrintAll(){const root=$('print-all');root.replaceChildren();root.append(aText('附录：完整十年职业主题与相位明细','h2'));if(lastVerification)root.append(aText('已发生职业事件的独立核验：'+JSON.stringify(lastVerification),'p'));root.append(aText('十年实验性指数：'+(report.careerIndex||[]).map(v=>v.year+'年 '+v.score+'/100').join('；'),'p'),aText(INDEX_METHOD,'p'));const story=decadePhases(decadeProfiles(report));for(const g of story){const sec=document.createElement('section');sec.className='print-year';sec.append(aText(g.range+'｜'+g.title,'h3'),aText(g.lead+' 机会重点：'+g.opportunity+' 主要风险：'+g.risk,'p'));root.append(sec);}for(const year of report.years){const sec=document.createElement('section');sec.className='print-year';sec.append(aText(year.year+' 年 · GR '+year.GR+' 段 / C '+year.C+' 段','h3'));const info=yearProfile(year);sec.append(aText('候选类型：'+info.kind+'。'+info.summary+' 机会重点：'+info.opportunity+' 主要风险：'+info.risk,'p'));sec.append(aText(info.valueLabel+'；'+info.jump+'；'+info.support,'p'));if(!year.events.length)sec.append(aText('本年未检出规则命中相位段。','p'));for(const e of year.events)sec.append(makeEvent(e));root.append(sec)}}
+function renderPrintAll(){const root=$('print-all');root.replaceChildren();root.append(aText('附录：完整十年职业主题与相位明细','h2'));if(lastVerification)root.append(aText('已发生职业事件的独立核验：'+JSON.stringify(lastVerification),'p'));root.append(aText('十年实验性指数：'+(report.careerIndex||[]).map(v=>v.year+'年 '+v.score+'/100').join('；'),'p'),aText(INDEX_METHOD,'p'));const story=decadePhases(decadeProfiles(report));for(const g of story){const sec=document.createElement('section');sec.className='print-year';sec.append(aText(g.range+'｜'+g.title,'h3'),aText(g.lead+' 机会重点：'+g.opportunity+' 主要风险：'+g.risk,'p'));root.append(sec);}for(const year of report.years){const sec=document.createElement('section');sec.className='print-year';sec.append(aText(year.year+' 年 · GR '+year.GR+' 段 / C '+year.C+' 段','h3'));const info=yearProfile(year);const d=detailedYear(year,report.years[report.years.indexOf(year)-1]||null,report.years[report.years.indexOf(year)+1]||null);sec.append(aText('主要判断：'+d.main+' 与上一年比较：'+d.relative+' 核心信号：'+d.foreground+' 事件辨析：'+d.interaction+' 行动：'+d.action+' 风险：'+d.risk,'p'));sec.append(aText(info.valueLabel+'；'+info.jump+'；'+info.support,'p'));if(!year.events.length)sec.append(aText('本年未检出规则命中相位段。','p'));for(const e of year.events)sec.append(makeEvent(e));root.append(sec)}}
 function saveJson(){if(!report)return;const blob=new Blob([JSON.stringify(report,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`career-model-lab-${report.years[0].year}-${report.years.at(-1).year}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),3000)}
 const EVENT_FIELDS=[
  ['O','确实出现新的职业机会'],['E','实际职责、权限或影响力明显扩大（不只是工作量）'],
