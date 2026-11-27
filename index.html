@@ -50,8 +50,15 @@
   <div class="section-heading results-heading"><div><div class="kicker">YOUR 10-YEAR CAREER EXPLORER</div><h2>十年职业发展时间轴</h2><p id="range-label"></p></div><div class="report-actions"><button class="button muted" id="print-btn">打印 / 保存 PDF</button><button class="button muted" id="json-btn">导出数据</button></div></div>
   <div id="report-notice" class="notice caution"></div>
   <section id="user-overview" class="user-overview" aria-label="十年职业总体结论"></section>
-  <section class="career-index-panel" aria-labelledby="career-index-title"><div class="panel-heading"><div><p class="kicker">CAREER DEVELOPMENT INDEX</p><h3 id="career-index-title">十年发展趋势｜发展信号与变化活跃度</h3><p>实线为实验性发展信号指数，虚线为独立变化活跃度。两者都不是实际职业成果或成功概率。重构信号不再被直接当作真实职业代价扣分。</p></div></div><div id="career-index-chart" class="career-index-chart"></div><div id="career-index-legend" class="career-index-legend"></div><details class="index-method"><summary>指数怎么算？哪些信息尚不能判断？</summary><div id="career-index-method"></div></details></section>
+  <section class="user-opportunity-panel" aria-labelledby="user-opportunity-title">
+   <div class="panel-heading"><div><p class="kicker">YOUR 10-YEAR OUTLOOK</p><h3 id="user-opportunity-title">未来十年｜事业与收入趋势</h3><p>哪几年更值得争取职业发展，哪几年更值得关注薪酬与回报？点击年份查看结论。</p></div></div>
+   <div class="user-opportunity-legend"><span><i class="opportunity-dot career"></i>事业发展机会</span><span><i class="opportunity-dot income"></i>收入增长机会</span></div>
+   <div id="user-opportunity-trends"></div>
+  </section>
+  <details class="secondary-career-index"><summary>查看职业综合评分与变化活跃度曲线</summary>
+  <section class="career-index-panel" aria-labelledby="career-index-title"><div class="panel-heading"><div><p class="kicker">CAREER DEVELOPMENT INDEX</p><h3 id="career-index-title">未来十年职业趋势</h3><p>实线看职业综合指数，虚线看职业变化节奏；评分不是现实升职概率。</p></div></div><div id="career-index-chart" class="career-index-chart"></div><div id="career-index-legend" class="career-index-legend"></div><details class="index-method"><summary>指数怎么算？哪些信息尚不能判断？</summary><div id="career-index-method"></div></details></section>
   <details class="tech-stats"><summary>查看原始天象统计（专业信息）</summary><div class="stat-grid" id="summary-stats"></div></details>
+  </details>
   <section id="forecast-focus" class="forecast-focus" aria-label="跃迁与收入候选时间窗口"></section>
   <section id="narrative-summary" class="narrative-summary"></section>
   <section id="decade-insights" class="decade-insights"></section>

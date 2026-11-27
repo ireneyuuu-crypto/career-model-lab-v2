@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {userTrendsForDecade} from '../career-index.js';
+const ev=(mover,priority,year,type='GR')=>({type,mover,priority,target:priority===3?'第二宫主':'天顶',label:'合相',begin:`${year}-02-01`,best:`${year}-03-10`,end:`${year}-04-01`,minOrb:0});
+const report=events=>({years:Array.from({length:10},(_,i)=>({year:2030+i,events:events.filter(e=>Number(e.begin.slice(0,4))===2030+i)}))});
+test('ten annual user-facing dual bars within 0–100',()=>{const r=userTrendsForDecade(report([ev('jupiter',1,2031),ev('jupiter',3,2034)]));assert.equal(r.length,10);assert.ok(r.every(x=>x.career>=0&&x.career<=100&&x.income>=0&&x.income<=100));assert.ok(r.find(x=>x.year===2031).career>0);assert.ok(r.find(x=>x.year===2034).income>0)});
+test('finance only is not inflated into main career score',()=>{const x=userTrendsForDecade(report([ev('jupiter',3,2034)])).find(x=>x.year===2034);assert.ok(x.income>x.career)});
+test('career P1 alone does not manufacture income signal',()=>{const x=userTrendsForDecade(report([ev('saturn',1,2031)])).find(x=>x.year===2031);assert.ok(x.career>0);assert.equal(x.income,0)});
+test('C alone is not an opportunity or income result',()=>{const x=userTrendsForDecade(report([ev('moon',2,2032,'C')])).find(x=>x.year===2032);assert.equal(x.career,0);assert.equal(x.income,0)});
+test('public UI has plain-language labels and proper module dependency',()=>{const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');const app=fs.readFileSync(new URL('../app.js',import.meta.url),'utf8');const sample=fs.readFileSync(new URL('../sample.html',import.meta.url),'utf8');assert.match(html,/事业发展机会/);assert.match(html,/收入增长机会/);assert.match(html,/user-opportunity-trends/);assert.match(sample,/sample-user-trends/);assert.match(app,/userTrendsForDecade/)});
