@@ -85,11 +85,11 @@
 <footer><span>© Career Model Lab · Beta</span><span>星体位置：Swiss Ephemeris / Moshier 预计算数据。分析仅供探索。</span></footer>
 <script src="./landing.js" defer></script><script type="module">
   // Explicit module boot errors: avoid silently dead buttons when a GitHub update misses a dependency.
-  import('./app.js').catch(error => {
+  import('./app.js?v=2.7.1').catch(error => {
     const problem = document.getElementById('app-boot-error');
     if (problem) {
       problem.hidden = false;
-      problem.textContent = '网页功能加载失败：' + (error?.message || 'JavaScript 模块不可用') + '。请将修复包中的所有文件上传到 GitHub 仓库根目录，等待部署完成后强制刷新。';
+      problem.textContent = '网页功能加载失败：' + (error?.message || 'JavaScript 模块不可用') + '。请打开同一网站目录下的 check.html 检查缺失文件，并将完整包所有文件上传到 GitHub 仓库根目录后刷新。';
     }
     console.error('Career Model Lab startup failed:', error);
   });

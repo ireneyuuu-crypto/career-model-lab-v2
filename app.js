@@ -57,7 +57,7 @@ function renderDecadeInsights(){
  card.append(aText(`${d.year}｜${d.title}`,'strong'),aText(d.summary,'span'),aText(`时间重点：${d.months}`,'small'));
  card.addEventListener('click',()=>selectStoryYear(d.year,true));cards.append(card)}host.append(cards);
 }
-function selectStoryYear(y,scroll=false){selectedYear=y;renderOpportunityTrends();renderOpportunityTrends();renderIndex();renderTimeline();renderYear();if(scroll)$('year-detail').scrollIntoView({behavior:'smooth',block:'start'});}
+function selectStoryYear(y,scroll=false){selectedYear=y;renderOpportunityTrends();renderIndex();renderTimeline();renderYear();if(scroll)$('year-detail').scrollIntoView({behavior:'smooth',block:'start'});}
 function renderForecastFocus(){
  const root=$('forecast-focus');if(!root||!report)return;root.replaceChildren();root.append(aText('未来十年最值得关注的年份','h3'));
  const grid=document.createElement('div');grid.className='forecast-focus-grid';

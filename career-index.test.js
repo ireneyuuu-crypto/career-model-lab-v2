@@ -13,7 +13,7 @@ test('all four model components and version explain score',()=>{const d=indexFor
 test('confirmed presentation weights are 15/25/25/35 and normalized',()=>{
  assert.deepEqual(CDI_WEIGHTS,{opportunity:.15,expansion:.25,position:.25,value:.35});
  assert.equal(Object.values(CDI_WEIGHTS).reduce((a,b)=>a+b,0),1);
- assert.match(CDI_VERSION,/2\.2/);
+ assert.match(CDI_VERSION,/2\.5/);
 });
 test('score is weighted sum of four proxies, no hidden cost subtraction',()=>{
  const y={year:2028,events:[ev('jupiter','天顶'),ev('saturn','天顶'),ev('jupiter','第二宫宫主',3)]};
