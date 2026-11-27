@@ -4,7 +4,7 @@ import {selectTarot} from './tarot.js';
 import {renderTarot} from './tarot-ui.js';
 import {interpretDecade,interpretYear} from './interpretation.js';
 import {decadeProfiles,decadePhases,keyWindows,yearProfile,forecastWindowSummary,modelCaveat} from './outcome.js';
-import {indexForDecade,INDEX_METHOD} from './career-index.js';
+import {indexForDecade,INDEX_METHOD,CDI_WEIGHTS} from './career-index.js';
 const $=id=>document.getElementById(id);
 let chart=null,report=null,selectedYear=null;
 const H={GR:'外部职业变化信号',C:'个人行动时钟'};
@@ -93,7 +93,7 @@ function renderIndex(){
  g.append(halo,dot,lab,yr);const choose=()=>{selectedYear=d.year;renderIndex();renderTimeline();renderYear();};g.addEventListener('click',choose);g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose()}});svg.append(g);});root.append(svg);
  const legend=$('career-index-legend');legend.replaceChildren();for(const d of data){const b=document.createElement('button');b.className='index-year-chip'+(selectedYear===d.year?' active':'');b.type='button';b.append(aText(d.year+' · '+d.label,'strong'),aText('发展信号 '+d.score+' / 100 · 变化活跃度 '+(d.changeIntensity??0)+' / 100','span'));b.addEventListener('click',()=>{selectedYear=d.year;renderIndex();renderTimeline();renderYear();});legend.append(b);}
  $('career-index-method').textContent='实线：发展相关信号指数；虚线：变化活跃度。'+INDEX_METHOD;
- const selected=data.find(d=>d.year===selectedYear); if(selected){const box=document.createElement('p');box.className='index-focused-summary';box.textContent=`${selected.year} 年模型指数 ${selected.score}/100；主要主题：${selected.label}。机会 ${selected.components.opportunity}、职责 ${selected.components.expansion}、职位 ${selected.components.position}、价值 ${selected.components.value}；结构变化成本调整 ${selected.costPenalty}。组织支持与变化后稳定性没有现实证据，不计算为实际好坏。`;root.append(box);}
+ const selected=data.find(d=>d.year===selectedYear); if(selected){const box=document.createElement('p');box.className='index-focused-summary';box.textContent=`${selected.year} 年模型指数 ${selected.score}/100；主要主题：${selected.label}。机会 ${selected.components.opportunity}×15%、职责 ${selected.components.expansion}×25%、职位 ${selected.components.position}×25%、价值 ${selected.components.value}×35% = ${selected.rawScore.toFixed(2)}（四舍五入为${selected.score}）。变化活跃度 ${selected.changeIntensity}/100 单独展示；无现实证据时S、ST和Cost不参与分数。分数是相位主题的内部展示指数，不是升职/涨薪概率，也不能与独立的J/R现实分类互换。`;root.append(box);}
 }
 function renderUserOverview(){const root=$('user-overview');root.replaceChildren();const phases=report.careerPhases||decadePhases(decadeProfiles(report));const windows=keyWindows(report.outcomeProfiles||decadeProfiles(report));
  root.append(aText('十年职业发展，一眼看懂','h3'));
