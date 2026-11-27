@@ -1,4 +1,4 @@
-import {verifyCareerEvent,MODEL_RULES} from './career-v2-canonical.js';
+import {verifyCareerEvent,MODEL_RULES,classifyActivation,CANONICAL_VERSION} from './career-v2-canonical.js';
 import {parseChart,validateSettings,calculateMC,forecast,DEMO,CN,dateHuman} from './engine.js';
 import {selectTarot} from './tarot.js';
 import {renderTarot} from './tarot-ui.js';
@@ -62,8 +62,8 @@ function renderForecastFocus(){
  root.append(aText('以下是由现有天象规则识别的候选窗口，不是已经预测到真实升职或涨薪；不会虚构薪资金额、涨幅或成功概率。','p'));
  const info=forecastWindowSummary(report);
  const groups=[
-  {title:'多维职业跃迁条件候选',years:info.jump,empty:'这十年没有同时检出主要职业点的扩展/位置主题与第二宫价值主题，不能因此断言不会跃迁。',explain:'同时出现职位/职责与价值相关的模型主题；实际跃迁仍需至少两项实质改善及组织支持、稳定性验证。'},
-  {title:'收入与职业价值观察窗口',years:info.value,empty:'这十年未检出直接的第二宫价值主题，无法指定涨薪年份。',explain:'代表薪酬、资源或市场价值议题可能值得留意，不意味着一定加薪。'},
+  {title:'跃迁相关信号重叠窗口（非已判定J）',years:info.jump,empty:'这十年没有同时检出主要职业点的扩展/位置主题与第二宫价值主题，不能因此断言不会跃迁。',explain:'职位/职责主题与价值主题同时出现，值得留意机会能否兑现；尚无法仅凭天象认定真实的E/P/V改善、组织承接与稳定性。'},
+  {title:'收入、资源与职业价值议题窗口',years:info.value,empty:'这十年未检出直接的第二宫价值主题，无法指定涨薪年份。',explain:'第二宫相关相位触发的观察年份；不预测工资一定增长，也无法预测具体涨幅。'},
   {title:'职位与责任变化窗口',years:info.position,empty:'未检出相应的主要职位责任主题。',explain:'值得关注正式职责与授权变化，不等于已发生晋升。'},
   {title:'职业重新定位窗口',years:info.restructure,empty:'未检出主要职业点的重构主题。',explain:'变化强度不能直接当作发展好坏；转型不自动等于向上。'}
  ];
@@ -79,17 +79,20 @@ function renderIndex(){
  const data=report.careerIndex||indexForDecade(report),root=$('career-index-chart');root.replaceChildren();
  const W=920,H=260,l=48,r=32,t=26,b=46,innerW=W-l-r,innerH=H-t-b;
  const NS='http://www.w3.org/2000/svg';const el=(name,attrs={})=>{const x=document.createElementNS(NS,name);for(const [k,v] of Object.entries(attrs))x.setAttribute(k,v);return x;};
- const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':'十年职业发展实验性综合指数折线图','preserveAspectRatio':'xMidYMid meet'});
+ const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':'十年发展相关信号指数与职业变化活跃度折线图','preserveAspectRatio':'xMidYMid meet'});
  const yval=s=>t+innerH*(100-s)/100;const xval=i=>l+innerW*i/Math.max(1,data.length-1);
  for(const tick of [0,25,50,75,100]){const y=yval(tick);svg.append(el('line',{x1:l,y1:y,x2:W-r,y2:y,stroke:'#6b6788','stroke-opacity':'.26','stroke-dasharray':'3 7'}));const tx=el('text',{x:10,y:y+4,fill:'#b9b1cb','font-size':12});tx.textContent=String(tick);svg.append(tx);}
  const poly=el('polyline',{points:data.map((d,i)=>`${xval(i)},${yval(d.score)}`).join(' '),fill:'none',stroke:'#ddc4a5','stroke-width':3,'stroke-linejoin':'round','stroke-linecap':'round'});svg.append(poly);
+ // Career change activity is a separate descriptive proxy, never the inverse of growth.
+ const change=el('polyline',{points:data.map((d,i)=>`${xval(i)},${yval(d.changeIntensity??0)}`).join(' '),fill:'none',stroke:'#a7a6c9','stroke-width':2,'stroke-dasharray':'5 7','stroke-opacity':'.85'});
+ svg.append(change);
  data.forEach((d,i)=>{const x=xval(i),y=yval(d.score);const g=el('g',{role:'button',tabindex:'0','aria-label':`${d.year}年，实验性指数${d.score}分，${d.label}`});
  const halo=el('circle',{cx:x,cy:y,r:13,fill:selectedYear===d.year?'#cfb18b':'transparent','fill-opacity':'.26'});const dot=el('circle',{cx:x,cy:y,r:6,fill:selectedYear===d.year?'#ffe0ad':'#ddd2e5',stroke:'#272944','stroke-width':2});
  const lab=el('text',{x,y:y-14,'text-anchor':'middle',fill:'#f6e8d8','font-size':13,'font-weight':'600'});lab.textContent=d.score;
  const yr=el('text',{x,y:H-16,'text-anchor':'middle',fill:'#d8d0e2','font-size':12});yr.textContent=d.year;
  g.append(halo,dot,lab,yr);const choose=()=>{selectedYear=d.year;renderIndex();renderTimeline();renderYear();};g.addEventListener('click',choose);g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose()}});svg.append(g);});root.append(svg);
- const legend=$('career-index-legend');legend.replaceChildren();for(const d of data){const b=document.createElement('button');b.className='index-year-chip'+(selectedYear===d.year?' active':'');b.type='button';b.append(aText(d.year+' · '+d.label,'strong'),aText(d.score+' / 100 · 模型内部比较','span'));b.addEventListener('click',()=>{selectedYear=d.year;renderIndex();renderTimeline();renderYear();});legend.append(b);}
- $('career-index-method').textContent=INDEX_METHOD;
+ const legend=$('career-index-legend');legend.replaceChildren();for(const d of data){const b=document.createElement('button');b.className='index-year-chip'+(selectedYear===d.year?' active':'');b.type='button';b.append(aText(d.year+' · '+d.label,'strong'),aText('发展信号 '+d.score+' / 100 · 变化活跃度 '+(d.changeIntensity??0)+' / 100','span'));b.addEventListener('click',()=>{selectedYear=d.year;renderIndex();renderTimeline();renderYear();});legend.append(b);}
+ $('career-index-method').textContent='实线：发展相关信号指数；虚线：变化活跃度。'+INDEX_METHOD;
  const selected=data.find(d=>d.year===selectedYear); if(selected){const box=document.createElement('p');box.className='index-focused-summary';box.textContent=`${selected.year} 年模型指数 ${selected.score}/100；主要主题：${selected.label}。机会 ${selected.components.opportunity}、职责 ${selected.components.expansion}、职位 ${selected.components.position}、价值 ${selected.components.value}；结构变化成本调整 ${selected.costPenalty}。组织支持与变化后稳定性没有现实证据，不计算为实际好坏。`;root.append(box);}
 }
 function renderUserOverview(){const root=$('user-overview');root.replaceChildren();const phases=report.careerPhases||decadePhases(decadeProfiles(report));const windows=keyWindows(report.outcomeProfiles||decadeProfiles(report));
@@ -110,7 +113,8 @@ function renderYear(){
  const root=$('year-detail');root.replaceChildren();const p=yearProfile(y);
  const overview=document.createElement('section');overview.className='interpretation-card';
  const tag=aText('年度事件判断 · 预测候选，不代表已发生','div');tag.className='interpretation-kicker';
- overview.append(tag,aText(p.kind,'h4'),aText(p.headline,'p'),aText(p.summary,'p'));
+ const activation=classifyActivation({gr:y.GR>0,c:y.C>0});
+ overview.append(tag,aText(p.kind,'h4'),aText('变化节奏：'+activation.label,'p'),aText(p.headline,'p'),aText(p.summary,'p'));
  const grid=document.createElement('div');grid.className='interpretation-grid';
  for(const [label,val] of [['这一年的机会重点',p.opportunity],['主要风险',p.risk],['现实验证重点',p.jump]]){
  const cell=document.createElement('div');cell.append(aText(label,'strong'),aText(val,'p'));grid.append(cell)}
@@ -128,7 +132,7 @@ function renderYear(){
 }
 function renderGlossary(){const g=$('glossary');g.replaceChildren();for(const [short,zh,explain] of GLOSSARY){const box=document.createElement('div');box.className='term';box.append(aText(short,'strong'),aText(' '+zh,'div'),aText(explain,'p'));g.append(box)}}
 function render(){const first=report.years[0].year;$('range-label').textContent=`${utcYearText(first)} · 根据天文黄经与已冻结的 Career V2.0 GR/C 规则计算`;
- message('report-notice','报告首先呈现规则性职业主题候选，并按证据动态划分阶段。GR/C 为相位活跃段数，非分数、概率。职位、价值和跃迁均需要现实证据，报告不会给出确定的涨薪比例。','caution');
+ message('report-notice','采用 Career V2.0 提纯规则：外部结构 → 个人行动时钟 → 现实职业维度 → 事件分类。天象只提供未来职业主题与时间窗口，不能直接确认职位晋升、收入增幅或J。综合指数是独立的实验性展示层。','caution');
  if(!selectedYear)selectedYear=first;renderUserOverview();renderIndex();renderForecastFocus();renderCareerStory();renderDecadeInsights();renderStats();renderTimeline();renderYear();renderGlossary();renderPrintAll();renderTarot($('career-tarot'),report.tarot||null);$('tarot-draw-controls').hidden=Boolean(report.tarot);view('results-view');}
 async function analyze(){const opts=getVal(),validation=validateSettings(opts);if(validation.errors.length){message('parse-warnings',validation.errors.join(' '),'error');return}
  $('analyze-btn').disabled=true;$('generation-scene').classList.add('active');$('calc-status').textContent='正在加载星历、计算十年的相位时间段…';
@@ -147,16 +151,16 @@ function setupCareerVerification(){
  for(const [key,label] of EVENT_FIELDS){
    const row=document.createElement('label');row.className='event-review-field';row.append(aText(label,'span'));
    const select=document.createElement('select');select.id='review-'+key;
-   for(const [value,text] of [['unknown','尚未核实'],['yes','是'],['no','否']]){
+   for(const [value,text] of (['S','ST'].includes(key)?[['unknown','尚未核实'],['yes','支持良好 / 稳定'],['neutral','中性 / 未明显失败'],['no','明显失败']]:[['unknown','尚未核实'],['yes','是'],['no','否']])){
      const opt=document.createElement('option');opt.value=value;opt.textContent=text;select.append(opt);
    }
    row.append(select);root.append(row);
  }
  $('review-run').addEventListener('click',()=>{
-   const f={Cost:$('review-cost').value};for(const [key] of EVENT_FIELDS){const v=$('review-'+key).value;f[key]=v==='yes'?true:v==='no'?false:null;}
+   const f={Cost:$('review-cost').value};for(const [key] of EVENT_FIELDS){const v=$('review-'+key).value;f[key]=v==='yes'?true:v==='no'?false:v==='neutral'?'neutral':null;}
    const r=verifyCareerEvent(f);lastVerification=r;if(report)report.observedEventVerification=r;
    const terms={J:'已核实的实质职业跃迁',R:'职业重构／重新定位',P:'正式职位变化',E:'职责或影响力扩张',O:'出现新的机会','0':'未记录上述类型的变化',undetermined:'现实信息尚不足以分类'};
-   $('event-review-result').textContent='核验结果：'+terms[r.type]+'。'+r.explanation+(r.tags.length?' 备注：'+r.tags.join('；')+'。':'')+(r.pending.length?' 待补证据：'+r.pending.join('；')+'。':'');
+   $('event-review-result').textContent=(r.unstableJump?'核验结果：多维上升但不稳定（Unstable J）':'核验结果：'+terms[r.type])+'。'+r.explanation+(r.tags.length?' 备注：'+r.tags.join('；')+'。':'')+(r.pending.length?' 待补证据：'+r.pending.join('；')+'。':'');
    if(report)renderPrintAll();
  });
 }

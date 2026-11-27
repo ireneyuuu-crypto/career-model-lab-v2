@@ -3,7 +3,7 @@
    The CDI is a presentation tool for comparing time windows within ONE report.
    It cannot be empirically calibrated without independently observed outcomes.
 */
-export const CDI_VERSION='CDI-2.0.0 / rules frozen for reproducible demonstration';
+export const CDI_VERSION='CDI-2.1.0 / experimental presentation, NOT canonical outcomes';
 export const CDI_WEIGHTS=Object.freeze({opportunity:0.25,expansion:0.25,position:0.25,value:0.25});
 export const CDI_BASELINE=50;
 const clamp=x=>Math.max(0,Math.min(100,x));
@@ -38,11 +38,14 @@ export function indexForYear(year){
   position:Math.round(clamp(50+18*s+8*j)),
   value:Math.round(clamp(50+27*finance))
  };
- const disruption=Math.min(20,Math.round(11*u+3*s));
+ // The canonical formula treats Cost independently: a Uranus/Pluto/Neptune
+ // contact is never evidence of actual stress, health loss or political cost.
+ const disruption=0;
+ const changeIntensity=Math.round(clamp(100*(0.40*u+0.22*s+0.22*j+0.16*action)));
  const raw=Object.entries(CDI_WEIGHTS).reduce((total,[key,w])=>total+components[key]*w,0);
- const score=Math.round(clamp(raw-disruption));
+ const score=Math.round(clamp(raw));
  const structural=u>0,formal=s>0,growth=j>0,financial=finance>0;
- return {year:year.year,score,components,costPenalty:disruption,
+ return {year:year.year,score,changeIntensity,components,costPenalty:disruption,
    themes:{growth,role:formal,value:financial,restructure:structural},
    support:null,stability:null,version:CDI_VERSION,calibrated:false,
    basis:{jupiter:j,saturn:s,restructure:u,finance,action},
@@ -52,4 +55,4 @@ export function indexForYear(year){
    financeSignals:gr.filter(e=>/第二宫/.test(e.target||'')).length};
 }
 export function indexForDecade(report){return report.years.map(indexForYear);}
-export const INDEX_METHOD='CDI v2.0（透明、可复现、尚未实证校准）：使用Career V2.0已计算的GR/C相位窗口，按目标点优先级、偏差、窗口在当年的持续比例计算代理强度。机会25%、职责25%、职位25%、价值25%，另对结构性变化作有限代价调整。50分为没有检测到相关信号时的起点，并非人群平均分。0–100分仅代表本模型内部的相对发展条件，不是成功概率、预测薪资、真实职位结果。组织支持(S)及3–6个月稳定性(ST)缺少现实证据，显示未知，不擅自代入。以上权重是V2.0新增公开评分规范，不是此前Career V2.0的冻结预测公式；必须使用独立现实数据校准后才能声称有经验预测效度。';
+export const INDEX_METHOD='CDI v2.1：此0–100分是公开、可复现但尚未实证校准的「发展相关信号指数」，不是已发生职业结果、成功率、薪资涨幅，也不是 Career V2.0 原始公式的一部分。机会/职责/职位/价值四个代理维度各25%，以50为无相关信号时的基线；另提供独立「变化活跃度」。重要修订：不再用天王、冥王、海王或土星相位自动推断现实Cost并扣分。正式职业跃迁必须由真实的E/P/V至少两项改善及S/ST核验得出；无法从天象直接证明。';

@@ -1,0 +1,17 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {MODEL_RULES,verifyCareerEvent} from '../career-v2-canonical.js';
+test('frozen GR/C threshold, trigger and targets',()=>{assert.equal(MODEL_RULES.GR.orb,3);assert.equal(MODEL_RULES.C.orb,2);assert.equal(MODEL_RULES.C.requiredForJump,false);assert.deepEqual(MODEL_RULES.GR.aspects,[0,90,180]);assert.ok(!MODEL_RULES.C.targets.includes('cusp2'));});
+test('two improvements and known positive support/stability give J',()=>{const r=verifyCareerEvent({E:true,P:true,V:false,S:true,ST:true});assert.equal(r.type,'J');assert.equal(r.confirmedJump,true)});
+test('one improvement cannot give J',()=>assert.notEqual(verifyCareerEvent({E:true,P:false,V:false,S:true,ST:true}).type,'J'));
+test('unknown stability does not imply confirmed J',()=>{const r=verifyCareerEvent({E:true,P:true,S:true});assert.equal(r.confirmedJump,false);assert.ok(r.pending.length)});
+test('failed stability blocks confirmed jump',()=>{const r=verifyCareerEvent({E:true,P:true,S:true,ST:false});assert.equal(r.confirmedJump,false)});
+test('failed support blocks confirmed jump',()=>assert.equal(verifyCareerEvent({E:true,V:true,S:false,ST:true}).confirmedJump,false));
+test('high cost does not erase a confirmed jump',()=>{const r=verifyCareerEvent({E:true,V:true,S:true,ST:true,Cost:'high'});assert.equal(r.type,'J');assert.ok(r.tags.includes('High-Cost J'))});
+test('R is independent and not a jump by default',()=>{const r=verifyCareerEvent({R:true,E:false,P:false,V:false});assert.equal(r.type,'R');assert.equal(r.confirmedJump,false)});
+test('R and confirmed jump may coexist',()=>{const r=verifyCareerEvent({R:true,E:true,V:true,S:true,ST:true});assert.equal(r.type,'J');assert.ok(r.tags.includes('R → J'))});
+test('unknown values never silently turn to zero event',()=>assert.equal(verifyCareerEvent({}).type,'undetermined'));
+test('zero event requires explicitly absent outcome dimensions',()=>assert.equal(verifyCareerEvent({O:false,E:false,P:false,V:false,R:false}).type,'0'));
+test('neutral S and ST satisfy canonical standard jump without requiring unusually positive sponsorship',()=>{const r=verifyCareerEvent({E:true,V:true,S:'neutral',ST:'neutral'});assert.equal(r.type,'J');assert.equal(r.confirmedJump,true)});
+test('weak stability is surfaced as unstable jump without confirming standard J',()=>{const r=verifyCareerEvent({E:true,P:true,S:'neutral',ST:false});assert.equal(r.unstableJump,true);assert.equal(r.confirmedJump,false);assert.ok(r.tags.some(t=>t.includes('Unstable J')))});
+test('support failure cannot be hidden by high salary or title',()=>{const r=verifyCareerEvent({E:true,V:true,S:false,ST:true,Cost:'high'});assert.equal(r.confirmedJump,false);assert.equal(r.highCostJump,false)});
+test('no active C does not block a real-world J',()=>{const r=verifyCareerEvent({E:true,P:true,S:true,ST:true,C:false});assert.equal(r.type,'J')});
